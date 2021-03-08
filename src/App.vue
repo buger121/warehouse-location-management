@@ -1,28 +1,37 @@
-<template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
-  </div>
+<template lang="pug">
+    <div class="app">
+        <div class="aside">
+            <locationAside/>
+        </div>
+        <div class="main">
+            <searchForm/>
+            <toolBar/>
+            <locationTable/>
+        </div>
+    </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import locationAside from './components/location-aside';
+import searchForm from './components/search-form';
+import toolBar from './components/tool-bar';
+import locationTable from './components/location-table';
 
 export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  }
-}
+  components: { locationAside, searchForm, toolBar, locationTable },
+};
 </script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+<style lang="scss" scoped>
+.app {
+  display: flex;
+  padding: 10px;
+}
+.aside {
+  margin-right: 15px;
+}
+.main {
+  width: 100%;
+  padding: 10px;
 }
 </style>
