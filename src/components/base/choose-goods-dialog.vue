@@ -1,26 +1,24 @@
 <template>
   <div class="update-dialog">
-    <el-dialog title="商品信息" :visible.sync="dialogVisible" width="60%" :before-close="handleClose" :destroy-on-close="true" @open="openHandle">
+    <el-dialog
+      title="商品信息"
+      :visible.sync="dialogVisible"
+      width="60%"
+      :before-close="handleClose"
+      :destroy-on-close="true"
+      @open="openHandle"
+      @opened="openedHandle"
+    >
       <div class="head">
         <el-form ref="form" v-model="searchForm" label-suffix=":" size="mini" :inline="true">
-          <el-form-item label="商品名称">
+          <el-form-item label="商品">
             <el-input v-model="searchForm.name" placeholder="名称支持多关键字"></el-input>
           </el-form-item>
-          <el-form-item label="商品编码">
-            <el-input v-model="searchForm.code" placeholder="编码"></el-input>
+          <el-form-item label="编码">
+            <el-input v-model="searchForm.code" placeholder="编码或规格值"></el-input>
           </el-form-item>
           <el-button type="primary" @click="handleSearch" size="mini">查询</el-button>
         </el-form>
-
-        <el-pagination
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-          current-page.sync="1"
-          :page-size="this.pageInfo.pageSize"
-          layout="prev, pager, next"
-          :total="this.pageInfo.total"
-        >
-        </el-pagination>
       </div>
 
       <el-table
@@ -40,7 +38,6 @@
           <template slot-scope="scope">{{ scope.row.img }}</template>
         </el-table-column>
         <el-table-column prop="code" label="商品编码" width="120"> </el-table-column>
-        <el-table-column prop="usage" label="条码" show-overflow-tooltip> </el-table-column>
         <el-table-column prop="name" label="商品名称/规格">
           <template slot-scope="scope">{{ scope.row.name }}/{{ scope.row.spec }}</template>
         </el-table-column>
@@ -49,7 +46,6 @@
 
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="handleSave">确定</el-button>
-        <el-button @click="handleContinue">确定并继续</el-button>
       </span>
     </el-dialog>
   </div>
@@ -59,6 +55,7 @@
 import { mapActions } from 'vuex'
 export default {
   props: {
+    tableData: Array,
     dialogVisible: Boolean,
     selected: {
       type: Array,
@@ -70,41 +67,54 @@ export default {
   data() {
     return {
       searchForm: {},
-      goodsTable: [],
       multipleSelectCopy: [],
-      pageInfo: {
-        currentPage: 1,
-        pageSize: 10,
-        total: 0,
-      },
+      chosen: [],
+      //   goodsTable: [],
     }
+  },
+  computed: {
+    goodsTable: function () {
+      return this.tableData || []
+    },
   },
   methods: {
     ...mapActions(['queryGoodsService', 'searchGoodsService']),
     handleClose() {
-      this.searchForm = {}
+      this.chosen = []
+      this.goodsTable = []
       this.$emit('close-handle')
     },
     handleSave() {
-      this.searchForm = {}
+      this.chosen = []
       this.$emit('add-handle', this.multipleSelectCopy)
       this.$emit('close-handle')
     },
-    handleContinue() {
-      this.$emit('add-handle', this.multipleSelectCopy)
-    },
     async openHandle() {
-      const data = await this.queryGoodsService(this.pageInfo)
-      this.goodsTable = data.list
-      this.pageInfo.pageSize = data.pageSize
-      this.pageInfo.currentPage = data.pageNum
-      this.pageInfo.total = data.total
+      //   this.goodsTable = this.tableData
       //如果已有选中商品，进行默认选中修改
+      //   let that = this
+      //   for (let i = 0; i < that.selected.length; i++) {
+      //     that.chosen.push(that.selected[i].code)
+      //   }
+      //   that.$nextTick(() => {
+      //     if (that.chosen.length > 0) {
+      //       that.tableData.forEach((row) => {
+      //         if (that.chosen.includes(row.code)) {
+      //           that.$refs.multipleTable.toggleRowSelection(row, true)
+      //         }
+      //       })
+      //     }
+      //   })
+    },
+    async openedHandle() {
       let that = this
+      for (let i = 0; i < that.selected.length; i++) {
+        that.chosen.push(that.selected[i].code)
+      }
       that.$nextTick(() => {
-        if (that.selected.length > 0) {
-          that.goodsTable.forEach((row) => {
-            if (that.selected.includes(row.id)) {
+        if (that.chosen.length > 0) {
+          that.tableData.forEach((row) => {
+            if (that.chosen.includes(row.code)) {
               that.$refs.multipleTable.toggleRowSelection(row, true)
             }
           })
@@ -114,26 +124,17 @@ export default {
     async handleSearch() {
       const params = {
         ...this.searchForm,
-        ...this.pageInfo,
+        currentPage: 1,
+        pageSize: 10,
       }
       const res = await this.searchGoodsService(params)
-      this.goodsTable = res.list
-      this.pageInfo.total = res.total
-      this.pageInfo.currentPage = res.pageNum
-      this.pageInfo.pageSize = res.pageSize
+      this.goodsTable = res.data
     },
     handleSelectionChange(val) {
       this.multipleSelectCopy = val
     },
     handleSizeChange() {},
-    async handleCurrentChange(currentPage) {
-      this.pageInfo.currentPage = currentPage
-      const data = await this.queryGoodsService({ ...this.pageInfo, ...this.searchForm })
-      this.goodsTable = data.list
-      this.pageInfo.pageSize = data.pageSize
-      this.pageInfo.currentPage = data.pageNum
-      this.pageInfo.total = data.total
-    },
+    handleCurrentChange() {},
   },
 }
 </script>

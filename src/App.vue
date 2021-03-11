@@ -8,18 +8,24 @@
             <toolBar/>
             <locationTable/>
         </div>
+        <loading v-if="LOADING" />
     </div>
 </template>
 
 <script>
-import locationAside from './components/location-aside';
-import searchForm from './components/search-form';
-import toolBar from './components/tool-bar';
-import locationTable from './components/location-table';
+import locationAside from './components/location-aside'
+import searchForm from './components/search-form'
+import toolBar from './components/tool-bar'
+import locationTable from './components/location-table'
+import loading from './components/base/loading'
+import { mapState } from 'vuex'
 
 export default {
-  components: { locationAside, searchForm, toolBar, locationTable },
-};
+  components: { locationAside, searchForm, toolBar, locationTable, loading },
+  computed: {
+    ...mapState(['LOADING']),
+  },
+}
 </script>
 
 <style lang="scss" scoped>

@@ -5,8 +5,8 @@
     </div>
 
     <div v-else-if="modeID === 1">
-      <el-select size="mini" @blur="blurEvent" @change="selectChange" v-model="selectValue">
-        <el-option v-for="(item, index) in selectList" :key="index" :value="item" :label="item"> </el-option>
+      <el-select size="mini" @blur="blurEvent" @change="selectChange" v-model="selectValue" ref="usage-select">
+        <el-option v-for="item in selectList" :key="item" :value="item" :label="item" @click.native="clickHandle"> </el-option>
       </el-select>
     </div>
   </div>
@@ -27,25 +27,26 @@ export default {
       selectList: ['拣选库位', '存储库位', '异常库位'],
     }
   },
-  watch: {
-    modeId(val) {
-      if (val) {
-        this.selectValue = this.value
-      }
-    },
-  },
   methods: {
     selectChange(value) {
-      console.log(value)
       this.selectValue = value
-      this.blurEvent()
+      if (value !== this.selectName) {
+        this.$emit('update-usage', this.selectValue)
+      }
     },
     focusEvent() {
       this.modeID = 1
+      this.selectValue = this.selectName
+      this.$nextTick(() => {
+        this.$refs['usage-select'].focus()
+      })
     },
     blurEvent() {
+      //   this.modeID = 0
+    },
+    clickHandle() {
       this.modeID = 0
-      //   console.log(this.selectValue)
+      this.selectName = this.selectValue
     },
   },
 }

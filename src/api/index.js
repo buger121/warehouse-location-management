@@ -18,3 +18,5 @@ export const queryGoodsUrl = 'goods/listAll'
 export const searchGoodsUrl = 'goods/search'
 //库位修改
 export const locationUpdateUrl = '/kqkw/update'
+//设置存放商品
+export const setGoodsUrl = '/connect/add'
