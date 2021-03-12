@@ -53,12 +53,13 @@
       @close-handle="handleCloseSetGoods"
       @add-handle="addHandle"
       :selected="goodsTableData"
+      :searchData="searchForm"
     ></chooseGoodsDialog>
   </div>
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapState, mapMutations } from 'vuex'
 import chooseGoodsDialog from './choose-goods-dialog'
 export default {
   components: { chooseGoodsDialog },
@@ -70,10 +71,7 @@ export default {
   },
   data() {
     return {
-      searchForm: {
-        code: '',
-        name: '',
-      },
+      searchForm: {},
       radio: 'code',
       searchInput: '',
       chooseGoodsDialog: false,
@@ -90,13 +88,18 @@ export default {
     },
   },
   methods: {
+    ...mapMutations(['SET_CHOOSE_GOODS']),
     ...mapActions(['searchGoodsService', 'queryLocationTableList', 'setGoodsService']),
     openHandle() {
       //   this.goodsTableCopy = this.locationTable[this.rowIndex].goodsList
       this.goodsTableData = this.currentGoodsList
+      this.SET_CHOOSE_GOODS(this.goodsTableData)
+    },
+    setGoodsTable(data) {
+      this.goodsTableData = data
     },
     async searchHandle() {
-      this.chooseGoodsDialog = true
+      console.log(this.searchForm)
       if (this.radio === 'code') {
         this.searchForm.code = this.searchInput
         this.searchForm.name = ''
@@ -104,17 +107,19 @@ export default {
         this.searchForm.name = this.searchInput
         this.searchForm.code = ''
       }
-      const params = {
-        ...this.searchForm,
-        currentPage: 1,
-        pageSize: 10,
-      }
-      const res = await this.searchGoodsService(params)
-      this.searchRes = res.list
+      this.chooseGoodsDialog = true
+      //   const params = {
+      //     ...this.searchForm,
+      //     currentPage: 1,
+      //     pageSize: 10,
+      //   }
+      //   const res = await this.searchGoodsService(params)
+      //   this.searchRes = res.list
     },
     async handleSave() {
       let gids = []
-      this.searchForm = ''
+      this.searchForm = {}
+      this.searchInput = ''
       for (let i = 0; i < this.goodsTableData.length; i++) {
         gids.push(this.goodsTableData[i].id)
       }

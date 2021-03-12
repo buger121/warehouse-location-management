@@ -24,7 +24,7 @@
       <el-table
         class="goods-table"
         ref="multipleTable"
-        :data="goodsTable"
+        :data="goodsTableData"
         tooltip-effect="dark"
         style="width: 100%"
         header-row-class-name="table-head"
@@ -52,9 +52,10 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions, mapState, mapMutations } from 'vuex'
 export default {
   props: {
+    searchData: Object,
     tableData: Array,
     dialogVisible: Boolean,
     selected: {
@@ -70,23 +71,38 @@ export default {
       multipleSelectCopy: [],
       chosen: [],
       //   goodsTable: [],
+      goodsTableData: [],
     }
   },
   computed: {
+    ...mapState(['chooseGoods']),
     goodsTable: function () {
       return this.tableData || []
     },
   },
   methods: {
+    ...mapMutations(['SET_CHOOSE_GOODS']),
     ...mapActions(['queryGoodsService', 'searchGoodsService']),
     handleClose() {
       this.chosen = []
-      this.goodsTable = []
       this.$emit('close-handle')
     },
     handleSave() {
       this.chosen = []
-      this.$emit('add-handle', this.multipleSelectCopy)
+      //   this.$emit('add-handle', this.multipleSelectCopy)
+      const newGoods = [...this.chooseGoods, ...this.multipleSelectCopy]
+      console.log(newGoods)
+      let resGoods = []
+      //对newGoods依据code去重
+      let checked = []
+      for (let i = 0; i < newGoods.length; i++) {
+        if (!checked.includes(newGoods[i].code)) {
+          checked.push(newGoods[i].code)
+          resGoods.push(newGoods[i])
+        }
+      }
+      this.SET_CHOOSE_GOODS(resGoods)
+      this.$parent.setGoodsTable(resGoods)
       this.$emit('close-handle')
     },
     async openHandle() {
@@ -107,13 +123,25 @@ export default {
       //   })
     },
     async openedHandle() {
+      //在打开选择窗口时自动查询
+      this.searchForm = this.searchData
+      this.$set(this.searchForm, 'code', this.searchData.code)
+      this.$set(this.searchForm, 'name', this.searchData.name)
+      const params = {
+        ...this.searchForm,
+        currentPage: 1,
+        pageSize: 10,
+      }
+      const res = await this.searchGoodsService(params)
+      this.goodsTableData = res.list
+      //如果有已经选中的商品进行勾选
       let that = this
-      for (let i = 0; i < that.selected.length; i++) {
-        that.chosen.push(that.selected[i].code)
+      for (let i = 0; i < that.chooseGoods.length; i++) {
+        that.chosen.push(that.chooseGoods[i].code)
       }
       that.$nextTick(() => {
         if (that.chosen.length > 0) {
-          that.tableData.forEach((row) => {
+          that.goodsTableData.forEach((row) => {
             if (that.chosen.includes(row.code)) {
               that.$refs.multipleTable.toggleRowSelection(row, true)
             }
@@ -128,9 +156,10 @@ export default {
         pageSize: 10,
       }
       const res = await this.searchGoodsService(params)
-      this.goodsTable = res.data
+      //   this.goodsTable = res.data
     },
     handleSelectionChange(val) {
+      console.log(val)
       this.multipleSelectCopy = val
     },
     handleSizeChange() {},
